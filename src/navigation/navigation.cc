@@ -33,6 +33,7 @@
 #include "shared/ros/ros_helpers.h"
 #include "navigation.h"
 #include "visualization/visualization.h"
+#include "controller.h"
 
 using Eigen::Vector2f;
 using amrl_msgs::AckermannCurvatureDriveMsg;
@@ -42,11 +43,13 @@ using std::vector;
 
 using namespace math_util;
 using namespace ros_helpers;
+using namespace controller;
 
 DEFINE_double(cp1_distance, 2.5, "Distance to travel for 1D TOC (cp1)");
 DEFINE_double(cp1_curvature, 0.5, "Curvature for arc path (cp1)");
 
 DEFINE_double(cp2_curvature, 0.5, "Curvature for arc path (cp2)");
+
 
 namespace {
 ros::Publisher drive_pub_;
@@ -54,9 +57,13 @@ ros::Publisher viz_pub_;
 VisualizationMsg local_viz_msg_;
 VisualizationMsg global_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
+Controller control;
 // Epsilon value for handling limited numerical precision.
 const float kEpsilon = 1e-5;
-} //namespace
+double distanceTravelled = 0.0;
+double currentVelocity = 0.0;
+
+} // namespace
 
 namespace navigation {
 
@@ -117,9 +124,9 @@ void Navigation::ObservePointCloud(const vector<Vector2f>& cloud,
                                    double time) {
   point_cloud_ = cloud;                                     
 }
-
+//Control loop VVVVVVV
 void Navigation::Run() {
-  // This function gets called 20 times a second to form the control loop.
+  // This function gets called 20 times a second to form the control loop. (called from navigation_main)
   
   // Clear previous visualizations.
   visualization::ClearVisualizationMsg(local_viz_msg_);
@@ -130,14 +137,21 @@ void Navigation::Run() {
 
   // The control iteration goes here. 
   // Feel free to make helper functions to structure the control appropriately.
-  
+  double controlResult;
+  Controller::CalculateValues(currentVelocity, 1.0, 3.0, distanceTravelled, FLAGS_cp1_distance, controlResult);
+  drive_msg_.velocity = controlResult;
+  // drive_msg_.curvature = controlResult[1];
+
+  // Update distance travelled
+  distanceTravelled += drive_msg_.velocity * 0.05;
+  currentVelocity = drive_msg_.velocity;
   // The latest observed point cloud is accessible via "point_cloud_"
 
   // Eventually, you will have to set the control values to issue drive commands:
-  // drive_msg_.curvature = ...;
-  // drive_msg_.velocity = ...;
+  // drive_msg_.curvature = 0.0;
+  // drive_msg_.velocity = 1.0;
 
-  // Add timestamps to all messages.
+  // Add timestamps to all messages. 
   local_viz_msg_.header.stamp = ros::Time::now();
   global_viz_msg_.header.stamp = ros::Time::now();
   drive_msg_.header.stamp = ros::Time::now();
@@ -145,6 +159,7 @@ void Navigation::Run() {
   viz_pub_.publish(local_viz_msg_);
   viz_pub_.publish(global_viz_msg_);
   drive_pub_.publish(drive_msg_);
+  ros::spinOnce();
 }
 
 }  // namespace navigation

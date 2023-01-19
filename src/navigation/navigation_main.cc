@@ -33,6 +33,7 @@
 #include "eigen3/Eigen/Geometry"
 #include "amrl_msgs/Localization2DMsg.h"
 #include "gflags/gflags.h"
+//Gflags allows you to define command line arguments
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -142,7 +143,7 @@ int main(int argc, char** argv) {
   navigation_ = new Navigation(FLAGS_map, &n);
 
   ros::Subscriber velocity_sub =
-      n.subscribe(FLAGS_odom_topic, 1, &OdometryCallback);
+      n.subscribe(FLAGS_odom_topic, 1, &OdometryCallback); //callback is the function that gets called when u receive the message
   ros::Subscriber localization_sub =
       n.subscribe(FLAGS_loc_topic, 1, &LocalizationCallback);
   ros::Subscriber laser_sub =
