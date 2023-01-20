@@ -137,8 +137,9 @@ void Navigation::Run() {
 
   // The control iteration goes here. 
   // Feel free to make helper functions to structure the control appropriately.
-  double controlResult;
-  Controller::CalculateValues(currentVelocity, 1.0, 3.0, distanceTravelled, FLAGS_cp1_distance, controlResult);
+  double controlResult = 0.0;
+  Controller obj;
+  obj.CalculateValues(currentVelocity, 1.0, 3.0, distanceTravelled, FLAGS_cp1_distance, controlResult);
   drive_msg_.velocity = controlResult;
   // drive_msg_.curvature = controlResult[1];
 
