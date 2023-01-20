@@ -1,41 +1,41 @@
-//========================================================================
-/*!
-\file    controller.h
-\author  Nihar, Jared, Eric, Daniel
-*/
-//========================================================================
+// //========================================================================
+// /*!
+// \file    controller.h
+// \author  Nihar, Jared, Eric, Daniel
+// */
+// //========================================================================
 
-#include <vector>
+// #include <vector>
 
-#include "eigen3/Eigen/Dense"
+// #include "eigen3/Eigen/Dense"
 
-#include "vector_map/vector_map.h"
+// #include "vector_map/vector_map.h"
 
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+// #ifndef CONTROLLER_H
+// #define CONTROLLER_H
 
 
-namespace controller {
+// namespace controller {
 
-class Controller {
- public:
+// class Controller {
+//  public:
 
-  // Constructor
-  explicit Controller();
+//   // Constructor
+//   explicit Controller();
 
-  void CalculateValues(double vCurrent, double vMax, double aMax, double distanceTravelled, double goalDist, double results);
+//   void CalculateValues(double vCurrent, double vMax, double aMax, double distanceTravelled, double goalDist, double results);
 
-  void Acceleration(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
+//   void Acceleration(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
 
-  void Cruise(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
+//   void Cruise(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
 
-  void Deceleration(double vMax, double vCurrent, double aMax, double aCurrent, double dt, double distanceLeft, double goalDist, double results);
+//   void Deceleration(double vMax, double vCurrent, double aMax, double aCurrent, double dt, double distanceLeft, double goalDist, double results);
 
- private:
+//  private:
 
   
-};
+// };
 
-}  // namespace controller
+// }  // namespace controller
 
-#endif  // CONTROLLER_H
+// #endif  // CONTROLLER_H
