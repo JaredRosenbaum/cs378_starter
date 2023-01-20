@@ -16,10 +16,16 @@ using std::vector;
 
 using namespace math_util;
 
+namespace {
+  const float vMax = 1.0;
+  const float aMax = 3.0;
+  float goalDist;
+}  // namespace
+
 namespace navigation {
 
 // Return the control velocity that will be used for the upcoming time-step.
-double Controller::Run(double vCurrent, double vMax, double aMax, double distanceTraveled, double goalDist, double cp1_distance) {
+float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance) {
 
   const double dt = 0.05; // 1/20th of a second, plug into equations to calculate distance travelled in this time frame
   goalDist = cp1_distance;

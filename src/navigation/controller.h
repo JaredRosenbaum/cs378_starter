@@ -14,7 +14,7 @@ namespace navigation {
 class Controller {
   public:
 
-  double Run(double vCurrent, double vMax, double aMax, double distanceTravelled, double goalDist, double cp1_distance);
+  float Run(float vCurrent, float distanceTraveled, float cp1_distance);
 
   private:
 

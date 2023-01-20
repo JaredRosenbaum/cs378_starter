@@ -57,14 +57,14 @@ VisualizationMsg global_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
 // Epsilon value for handling limited numerical precision.
 const float kEpsilon = 1e-5;
-double vCurrent = 0.0;
-double vMax = 1.0;
-double aMax = 3.0;
-double distanceTraveled = 0.0;
-double goalDist;
-double controlVelocity;
+
+// Controller variables
+float vCurrent = 0.0;
+float distanceTraveled = 0.0;
+float controlVelocity;
 navigation::Controller TOC;
-} //namespace
+
+} // namespace
 
 namespace navigation {
 
@@ -137,7 +137,7 @@ void Navigation::Run() {
   if (!odom_initialized_) return;
 
   // The control iteration goes here. 
-  controlVelocity = TOC.Run(vCurrent, vMax, aMax, distanceTraveled, goalDist, FLAGS_cp1_distance);
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
   distanceTraveled += controlVelocity * 0.05;
   vCurrent = controlVelocity;
   
