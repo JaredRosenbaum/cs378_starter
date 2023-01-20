@@ -5,37 +5,21 @@
 */
 //========================================================================
 
-#include <vector>
-
-#include "eigen3/Eigen/Dense"
-
-#include "vector_map/vector_map.h"
-
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
 
-namespace controller {
+namespace navigation {
 
 class Controller {
- public:
+  public:
 
-  // Constructor
-  explicit Controller();
+  double Run(double vCurrent, double vMax, double aMax, double distanceTravelled, double goalDist, double cp1_distance);
 
-  void CalculateValues(double vCurrent, double vMax, double aMax, double distanceTravelled, double goalDist, double results);
+  private:
 
-  void Acceleration(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
-
-  void Cruise(double vMax, double vCurrent, double aMax, double dt, double distanceLeft, double results);
-
-  void Deceleration(double vMax, double vCurrent, double aMax, double aCurrent, double dt, double distanceLeft, double goalDist, double results);
-
- private:
-
-  
 };
 
-}  // namespace controller
+}  // namespace navigation
 
 #endif  // CONTROLLER_H

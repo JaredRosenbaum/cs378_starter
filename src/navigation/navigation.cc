@@ -33,6 +33,7 @@
 #include "shared/ros/ros_helpers.h"
 #include "navigation.h"
 #include "visualization/visualization.h"
+#include "controller.h"
 
 using Eigen::Vector2f;
 using amrl_msgs::AckermannCurvatureDriveMsg;
@@ -59,9 +60,10 @@ const float kEpsilon = 1e-5;
 double vCurrent = 0.0;
 double vMax = 1.0;
 double aMax = 3.0;
-double distanceTravelled = 0.0;
+double distanceTraveled = 0.0;
 double goalDist;
 double controlVelocity;
+navigation::Controller TOC;
 } //namespace
 
 namespace navigation {
@@ -134,38 +136,16 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  //--------------CP1----------------//
-  const double dt = 0.05; // 1/20th of a second, plug into equations to calculate distance travelled in this time frame
-  goalDist = FLAGS_cp1_distance;
-  double distanceLeft = goalDist - distanceTravelled; // subtracts global distance travelled from our goal distance
-
-  if ((vCurrent < vMax) && (distanceLeft-(vCurrent+aMax*dt) >= vMax*vMax/(2*aMax))) {
-    // Use kinematic equation to check if we have enough distanceleft to keep increasing velocity
-    controlVelocity = vCurrent + aMax*dt;
-  }
-    //cruise
-  else if((vMax == vCurrent) && (distanceLeft-vMax*dt >= vMax*vMax/(2*aMax))){
-    controlVelocity = vMax;
-  }
-    //deceleration
-  else {
-    double d = vCurrent*vCurrent/(2*(distanceLeft));
-    controlVelocity = vCurrent - d*dt;
-  }
-
-  drive_msg_.velocity = controlVelocity;
-  distanceTravelled += drive_msg_.velocity * 0.05;
-  vCurrent = drive_msg_.velocity;
-  //------------END CP1-----------//
-
   // The control iteration goes here. 
-  // Feel free to make helper functions to structure the control appropriately.
+  controlVelocity = TOC.Run(vCurrent, vMax, aMax, distanceTraveled, goalDist, FLAGS_cp1_distance);
+  distanceTraveled += controlVelocity * 0.05;
+  vCurrent = controlVelocity;
   
   // The latest observed point cloud is accessible via "point_cloud_"
 
   // Eventually, you will have to set the control values to issue drive commands:
-  // drive_msg_.curvature = ...;
-  // drive_msg_.velocity = ...;
+  drive_msg_.curvature = 0.0;
+  drive_msg_.velocity = controlVelocity;
 
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
