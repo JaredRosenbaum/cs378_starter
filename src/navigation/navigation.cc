@@ -33,7 +33,6 @@
 #include "shared/ros/ros_helpers.h"
 #include "navigation.h"
 #include "visualization/visualization.h"
-#include "controller.h"
 
 using Eigen::Vector2f;
 using amrl_msgs::AckermannCurvatureDriveMsg;
@@ -43,13 +42,11 @@ using std::vector;
 
 using namespace math_util;
 using namespace ros_helpers;
-using namespace controller;
 
 DEFINE_double(cp1_distance, 2.5, "Distance to travel for 1D TOC (cp1)");
 DEFINE_double(cp1_curvature, 0.5, "Curvature for arc path (cp1)");
 
 DEFINE_double(cp2_curvature, 0.5, "Curvature for arc path (cp2)");
-
 
 namespace {
 ros::Publisher drive_pub_;
@@ -57,13 +54,15 @@ ros::Publisher viz_pub_;
 VisualizationMsg local_viz_msg_;
 VisualizationMsg global_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
-Controller control;
 // Epsilon value for handling limited numerical precision.
 const float kEpsilon = 1e-5;
+double vCurrent = 0.0;
+double vMax = 1.0;
+double aMax = 3.0;
 double distanceTravelled = 0.0;
-double currentVelocity = 0.0;
-
-} // namespace
+double goalDist;
+double controlVelocity;
+} //namespace
 
 namespace navigation {
 
@@ -124,9 +123,9 @@ void Navigation::ObservePointCloud(const vector<Vector2f>& cloud,
                                    double time) {
   point_cloud_ = cloud;                                     
 }
-//Control loop VVVVVVV
+
 void Navigation::Run() {
-  // This function gets called 20 times a second to form the control loop. (called from navigation_main)
+  // This function gets called 20 times a second to form the control loop.
   
   // Clear previous visualizations.
   visualization::ClearVisualizationMsg(local_viz_msg_);
@@ -135,24 +134,40 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
+  //--------------CP1----------------//
+  const double dt = 0.05; // 1/20th of a second, plug into equations to calculate distance travelled in this time frame
+  goalDist = FLAGS_cp1_distance;
+  double distanceLeft = goalDist - distanceTravelled; // subtracts global distance travelled from our goal distance
+
+  if ((vCurrent < vMax) && (distanceLeft-(vCurrent+aMax*dt) >= vMax*vMax/(2*aMax))) {
+    // Use kinematic equation to check if we have enough distanceleft to keep increasing velocity
+    controlVelocity = vCurrent + aMax*dt;
+  }
+    //cruise
+  else if((vMax == vCurrent) && (distanceLeft-vMax*dt >= vMax*vMax/(2*aMax))){
+    controlVelocity = vMax;
+  }
+    //deceleration
+  else {
+    double d = vCurrent*vCurrent/(2*(distanceLeft));
+    controlVelocity = vCurrent - d*dt;
+  }
+
+  drive_msg_.velocity = controlVelocity;
+  distanceTravelled += drive_msg_.velocity * 0.05;
+  vCurrent = drive_msg_.velocity;
+  //------------END CP1-----------//
+
   // The control iteration goes here. 
   // Feel free to make helper functions to structure the control appropriately.
-  double controlResult = 0.0;
-  Controller obj;
-  obj.CalculateValues(currentVelocity, 1.0, 3.0, distanceTravelled, FLAGS_cp1_distance, controlResult);
-  drive_msg_.velocity = controlResult;
-  // drive_msg_.curvature = controlResult[1];
-
-  // Update distance travelled
-  distanceTravelled += drive_msg_.velocity * 0.05;
-  currentVelocity = drive_msg_.velocity;
+  
   // The latest observed point cloud is accessible via "point_cloud_"
 
   // Eventually, you will have to set the control values to issue drive commands:
-  // drive_msg_.curvature = 0.0;
-  // drive_msg_.velocity = 1.0;
+  // drive_msg_.curvature = ...;
+  // drive_msg_.velocity = ...;
 
-  // Add timestamps to all messages. 
+  // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
   global_viz_msg_.header.stamp = ros::Time::now();
   drive_msg_.header.stamp = ros::Time::now();
