@@ -44,7 +44,7 @@ using std::vector;
 using namespace math_util;
 using namespace ros_helpers;
 
-DEFINE_double(cp1_distance, 2.5, "Distance to travel for 1D TOC (cp1)");
+DEFINE_double(cp1_distance, 1.0, "Distance to travel for 1D TOC (cp1)");
 DEFINE_double(cp1_curvature, 0.5, "Curvature for arc path (cp1)");
 
 DEFINE_double(cp2_curvature, 0.5, "Curvature for arc path (cp2)");
@@ -62,6 +62,8 @@ const float kEpsilon = 1e-5;
 float vCurrent = 0.0;
 float distanceTraveled = 0.0;
 float controlVelocity;
+int counter = 0;
+Vector2f last_odom_;
 navigation::Controller TOC;
 
 } // namespace
@@ -138,11 +140,19 @@ void Navigation::Run() {
 
   // The control iteration goes here. 
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
-  distanceTraveled += controlVelocity * 0.05;
-  vCurrent = controlVelocity;
+  vCurrent = robot_vel_.norm();
+  
+  // Adjust location based on odometry
+  if (counter < 1){
+    last_odom_ = odom_start_loc_;
+    counter += 1;
+  }
+  distanceTraveled += (odom_loc_ - last_odom_).norm();
+  // std::cout << distanceTraveled << "\n";
   
   // The latest observed point cloud is accessible via "point_cloud_"
-
+  
+  last_odom_ = odom_loc_;
   // Eventually, you will have to set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
