@@ -30,6 +30,7 @@ namespace navigation {
 float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length) {
   goalDist = cp1_distance;
   float distanceLeft;
+  //Robot checks to see if the distance to an obstacle is less than the assigned goal distance. If so, it overwrites the assigned goal distance with it's collision avoidance model. 
   if (free_path_length < goalDist){
     distanceLeft = free_path_length - 0.3;
   }
