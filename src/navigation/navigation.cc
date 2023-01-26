@@ -155,11 +155,12 @@ void Navigation::Run() {
   if (p.y() < 0.2405){
     //This point p is in front of the car.
     if (p.x() < min_dist){
-      min_dist = p.x()
+      min_dist = p.x();
     }
   }
   //At this point, min_dist is the closest point in front of the car.
   }
+  // std::cout << min_dist << endl;
 
   // Run 1-D Time Optimal Control.
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
@@ -170,7 +171,6 @@ void Navigation::Run() {
   // Eventually, you will have to set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
-
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
   global_viz_msg_.header.stamp = ros::Time::now();
