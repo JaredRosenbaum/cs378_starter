@@ -31,7 +31,10 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   goalDist = cp1_distance;
   float distanceLeft;
   //Robot checks to see if the distance to an obstacle is less than the assigned goal distance. If so, it overwrites the assigned goal distance with it's collision avoidance model. 
-  if (free_path_length < goalDist){
+  if (free_path_length >= 10.0){
+    free_path_length = 10000000.0; //... workaround for when goal dist > 10
+  }
+  if (free_path_length < goalDist - distanceTraveled){
     distanceLeft = free_path_length - 0.3;
   }
   else {

@@ -163,6 +163,7 @@ void Navigation::Run() {
   std::cout << min_dist << "min dist" << endl;
 
   // Run 1-D Time Optimal Control.
+  
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance, min_dist);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
