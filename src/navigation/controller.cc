@@ -10,6 +10,7 @@
 #include "shared/math/math_util.h"
 #include "shared/util/timer.h"
 #include "controller.h"
+#include <iostream>
 
 using std::string;
 using std::vector;
@@ -26,9 +27,15 @@ namespace {
 namespace navigation {
 
 // Return the control velocity that will be used for the upcoming time-step.
-float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance) {
+float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length) {
   goalDist = cp1_distance;
-  float distanceLeft = goalDist - distanceTraveled; // subtracts global distance travelled from our goal distance
+  float distanceLeft;
+  if (free_path_length < goalDist){
+    distanceLeft = free_path_length - 0.3;
+  }
+  else {
+    distanceLeft = goalDist - distanceTraveled; // subtracts global distance travelled from our goal distance
+  }
   float controlVelocity;
 
   // ACCELERATION CASE
@@ -54,6 +61,7 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
     controlVelocity = 0.0;
   }
 
+  std::cout << distanceLeft << "distleft" << std::endl;
   return controlVelocity;
 }
 

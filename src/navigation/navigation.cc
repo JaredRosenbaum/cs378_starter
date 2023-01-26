@@ -44,7 +44,7 @@ using std::vector;
 using namespace math_util;
 using namespace ros_helpers;
 
-DEFINE_double(cp1_distance, 2.0, "Distance to travel for 1D TOC (cp1)");
+DEFINE_double(cp1_distance, 20.0, "Distance to travel for 1D TOC (cp1)");
 DEFINE_double(cp1_curvature, 0.5, "Curvature for arc path (cp1)");
 
 DEFINE_double(cp2_curvature, 0.5, "Curvature for arc path (cp2)");
@@ -160,10 +160,10 @@ void Navigation::Run() {
   }
   //At this point, min_dist is the closest point in front of the car.
   }
-  // std::cout << min_dist << endl;
+  std::cout << min_dist << "min dist" << endl;
 
   // Run 1-D Time Optimal Control.
-  controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance, min_dist);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
   // std::cout << distanceTraveled << "\n";

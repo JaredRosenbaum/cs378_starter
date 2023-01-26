@@ -14,7 +14,7 @@ namespace navigation {
 class Controller {
   public:
 
-  float Run(float vCurrent, float distanceTraveled, float cp1_distance);
+  float Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length);
 
   private:
 
