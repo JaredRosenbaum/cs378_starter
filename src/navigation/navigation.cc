@@ -64,6 +64,8 @@ float distanceTraveled = 0.0;
 float controlVelocity;
 navigation::Controller TOC;
 
+// PointCloud visualization variables
+Vector2f p(0.0, 0.0);
 } // namespace
 
 namespace navigation {
@@ -133,17 +135,27 @@ void Navigation::Run() {
   visualization::ClearVisualizationMsg(local_viz_msg_);
   visualization::ClearVisualizationMsg(global_viz_msg_);
 
+  // Visualize pointcloud from LiDAR.
+  for (int i = 0; i < (int)point_cloud_.size(); i++) {
+    p = point_cloud_[i];
+    visualization::DrawCross(p, 0.05, 0, local_viz_msg_);
+    // cout << p.x() << "\t\t" << p.y() << endl;
+  }
+
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // The control iteration goes here. 
+  // TODO Step 2. Calculate free path length between the car and object. 
+  // @@@@
+  // @@@@
+  // @@@@
+
+  // Run 1-D Time Optimal Control.
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
   // std::cout << distanceTraveled << "\n";
-  
-  // The latest observed point cloud is accessible via "point_cloud_"
-  
+
   // Eventually, you will have to set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
