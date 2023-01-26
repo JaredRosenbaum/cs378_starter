@@ -94,7 +94,7 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
   for (int i = 0; i < (int)msg.ranges.size(); i++) {
     p.x() = msg.ranges[i] * cos(theta) + kLaserLoc.x();
     p.y() = msg.ranges[i] * sin(theta);
-    point_cloud_.push_back(p);
+    point_cloud_.push_back(p); //push_back = append
     theta += msg.angle_increment;
   }
 

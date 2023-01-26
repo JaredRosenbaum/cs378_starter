@@ -145,10 +145,21 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // TODO Step 2. Calculate free path length between the car and object. 
-  // @@@@
-  // @@@@
-  // @@@@
+  // Step 2. Calculate free path length between the car and object. 
+  float min_dist = 10.0;
+  for (int i = 0; i < (int)point_cloud_.size(); i++) {
+  p = point_cloud_[i];
+  if (p.y() < 0){
+    p.y() = p.y()*(-1);
+  }
+  if (p.y() < 0.2405){
+    //This point p is in front of the car.
+    if (p.x() < min_dist){
+      min_dist = p.x()
+    }
+  }
+  //At this point, min_dist is the closest point in front of the car.
+  }
 
   // Run 1-D Time Optimal Control.
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance);
