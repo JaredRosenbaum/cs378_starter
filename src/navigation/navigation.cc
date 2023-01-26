@@ -160,14 +160,12 @@ void Navigation::Run() {
   }
   //At this point, min_dist is the closest point in front of the car.
   }
-  std::cout << min_dist << "min dist" << endl;
 
   // Run 1-D Time Optimal Control.
   
   controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance, min_dist);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
-  // std::cout << distanceTraveled << "\n";
 
   // Eventually, you will have to set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;

@@ -65,7 +65,6 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
     controlVelocity = 0.0;
   }
 
-  std::cout << distanceLeft << "distleft" << std::endl;
   return controlVelocity;
 }
 
