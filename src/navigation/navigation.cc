@@ -62,10 +62,14 @@ const float kEpsilon = 1e-5;
 float vCurrent = 0.0;
 float distanceTraveled = 0.0;
 float controlVelocity;
+
 navigation::Controller TOC;
 
 // PointCloud visualization variables
 Vector2f p(0.0, 0.0);
+
+// Latency calculations
+vector<float> prevCommands{};
 } // namespace
 
 namespace navigation {
@@ -111,6 +115,7 @@ void Navigation::UpdateOdometry(const Vector2f& loc,
                                 float ang_vel) {
   robot_omega_ = ang_vel;
   robot_vel_ = vel;
+
   if (!odom_initialized_) {
     odom_start_angle_ = angle;
     odom_start_loc_ = loc;
@@ -119,6 +124,7 @@ void Navigation::UpdateOdometry(const Vector2f& loc,
     odom_angle_ = angle;
     return;
   }
+
   odom_loc_ = loc;
   odom_angle_ = angle;
 }
@@ -147,33 +153,54 @@ void Navigation::Run() {
 
   // Step 2. Calculate free path length between the car and object. 
   float min_dist = 10.0;
+
   for (int i = 0; i < (int)point_cloud_.size(); i++) {
-  p = point_cloud_[i];
-  if (p.y() < 0){
-    p.y() = p.y()*(-1);
-  }
-  if (p.y() < 0.2405){
-    //This point p is in front of the car.
-    if (p.x() < min_dist){
-      min_dist = p.x();
+    p = point_cloud_[i];
+
+    if (p.y() < 0){
+      p.y() = p.y()*(-1);
     }
-  }
+
+    if (p.y() < 0.2405){
+      //This point p is in front of the car.
+      if (p.x() < min_dist){
+        min_dist = p.x();
+      }
+    }
   //At this point, min_dist is the closest point in front of the car.
   }
 
   // Run 1-D Time Optimal Control.
+
+  //Latency Calculations
+  float latency = 4.0;
+  for (unsigned i = 0; i < prevCommands.size(); i++) {
+    latency += prevCommands[i];
+  }
   
-  controlVelocity = TOC.Run(vCurrent, distanceTraveled, FLAGS_cp1_distance, min_dist);
+  float timestep = 0.05;
+  latency *= timestep;
+  
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled + latency, FLAGS_cp1_distance, min_dist - latency);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
 
   // Eventually, you will have to set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
+
+  // Keep track of the previous commands for latency
+  if(prevCommands.size() == 10) {
+      prevCommands.pop_back();
+  } 
+
+  prevCommands.insert(prevCommands.begin(), controlVelocity);
+
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
   global_viz_msg_.header.stamp = ros::Time::now();
   drive_msg_.header.stamp = ros::Time::now();
+
   // Publish messages.
   viz_pub_.publish(local_viz_msg_);
   viz_pub_.publish(global_viz_msg_);
