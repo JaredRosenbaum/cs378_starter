@@ -59,6 +59,7 @@ AckermannCurvatureDriveMsg drive_msg_;
 const float kEpsilon = 1e-5;
 
 // Controller variables
+float timestep = 0.05;
 float vCurrent = 0.0;
 float distanceTraveled = 0.0;
 float controlVelocity;
@@ -151,9 +152,8 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // Step 2. Calculate free path length between the car and object. 
+  // Calculate free path length between the car and object. 
   float min_dist = 10.0;
-
   for (int i = 0; i < (int)point_cloud_.size(); i++) {
     p = point_cloud_[i];
 
@@ -167,20 +167,16 @@ void Navigation::Run() {
         min_dist = p.x();
       }
     }
-  //At this point, min_dist is the closest point in front of the car.
-  }
+  } // At this point, min_dist is the closest point in front of the car.
 
-  // Run 1-D Time Optimal Control.
-
-  //Latency Calculations
+  // Latency Calculations
   float latency = 4.0;
   for (unsigned i = 0; i < prevCommands.size(); i++) {
     latency += prevCommands[i];
   }
-  
-  float timestep = 0.05;
   latency *= timestep;
   
+  // Run Time Optimal Controller to calculate velocity value
   controlVelocity = TOC.Run(vCurrent, distanceTraveled + latency, FLAGS_cp1_distance, min_dist - latency);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
@@ -189,11 +185,10 @@ void Navigation::Run() {
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
 
-  // Keep track of the previous commands for latency
+  // Keep track of the previous commands for latency compensation
   if(prevCommands.size() == 10) {
       prevCommands.pop_back();
   } 
-
   prevCommands.insert(prevCommands.begin(), controlVelocity);
 
   // Add timestamps to all messages.

@@ -28,9 +28,12 @@ namespace navigation {
 
 // Return the control velocity that will be used for the upcoming time-step.
 float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length) {
-  goalDist = cp1_distance;
   float distanceLeft;
-  //Robot checks to see if the distance to an obstacle is less than the assigned goal distance. If so, it overwrites the assigned goal distance with it's collision avoidance model. 
+  float controlVelocity;
+
+  // Robot checks to see if the distance to an obstacle is less than the assigned goal distance.
+  // If so, it overwrites the assigned goal distance with its collision avoidance model.
+  goalDist = cp1_distance;
   if (free_path_length >= 10.0){
     free_path_length = 10000000.0; //... workaround for when goal dist > 10
   }
@@ -40,7 +43,6 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   else {
     distanceLeft = goalDist - distanceTraveled; // subtracts global distance travelled from our goal distance
   }
-  float controlVelocity;
 
   // ACCELERATION CASE
   // Use kinematic equation to check if we have enough distance left to accelerate one more time-step
