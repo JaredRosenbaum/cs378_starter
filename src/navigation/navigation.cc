@@ -186,7 +186,7 @@ void Navigation::Run() {
   drive_msg_.velocity = controlVelocity;
 
   // Keep track of the previous commands for latency compensation
-  if(prevCommands.size() == 10) {
+  if(prevCommands.size() == 4) {
       prevCommands.pop_back();
   } 
   prevCommands.insert(prevCommands.begin(), controlVelocity);
