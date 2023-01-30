@@ -170,14 +170,14 @@ void Navigation::Run() {
   } // At this point, min_dist is the closest point in front of the car.
 
   // Latency Calculations
-  float latency = 4.0;
+  float latency = 0.0;
   for (unsigned i = 0; i < prevCommands.size(); i++) {
     latency += prevCommands[i];
   }
   latency *= timestep;
   
   // Run Time Optimal Controller to calculate velocity value
-  controlVelocity = TOC.Run(vCurrent, distanceTraveled + latency, FLAGS_cp1_distance, min_dist - latency);
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled + latency, FLAGS_cp1_distance, min_dist);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
 

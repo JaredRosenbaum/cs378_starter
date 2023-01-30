@@ -38,7 +38,7 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
     free_path_length = 10000000.0; //... workaround for when goal dist > 10
   }
   if (free_path_length < goalDist - distanceTraveled){
-    distanceLeft = free_path_length - 0.3;
+    distanceLeft = free_path_length - 0.5;
   }
   else {
     distanceLeft = goalDist - distanceTraveled; // subtracts global distance travelled from our goal distance
