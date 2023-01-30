@@ -156,36 +156,35 @@ void Navigation::Run() {
   float min_dist = 10.0;
   for (int i = 0; i < (int)point_cloud_.size(); i++) {
     p = point_cloud_[i];
-
-    if (p.y() < 0){
+    // Make all coordinates positive
+    if (p.y() < 0) {
       p.y() = p.y()*(-1);
     }
-
-    if (p.y() < 0.2405){
-      //This point p is in front of the car.
+    // Only check point if in front of the car
+    if (p.y() < 0.2405) {
       if (p.x() < min_dist){
         min_dist = p.x();
       }
     }
   } // At this point, min_dist is the closest point in front of the car.
 
-  // Latency Calculations
-  float latency = 0.0;
+  // Calculate distance traveled assuming a 0.2s actuation latency
+  float distanceLatency = 0.0;
   for (unsigned i = 0; i < prevCommands.size(); i++) {
-    latency += prevCommands[i];
+    distanceLatency += prevCommands[i];
   }
-  latency *= timestep;
+  distanceLatency *= timestep;
   
   // Run Time Optimal Controller to calculate velocity value
-  controlVelocity = TOC.Run(vCurrent, distanceTraveled + latency, FLAGS_cp1_distance, min_dist);
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled + distanceLatency, FLAGS_cp1_distance, min_dist - distanceLatency);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
 
-  // Eventually, you will have to set the control values to issue drive commands:
+  // Set the control values to issue drive commands:
   drive_msg_.curvature = 0.0;
   drive_msg_.velocity = controlVelocity;
 
-  // Keep track of the previous commands for latency compensation
+  // Keep track of the previous velocity commands for latency compensation
   if(prevCommands.size() == 4) {
       prevCommands.pop_back();
   } 

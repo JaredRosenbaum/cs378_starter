@@ -30,16 +30,21 @@ namespace navigation {
 float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length) {
   float distanceLeft;
   float controlVelocity;
-
-  // Robot checks to see if the distance to an obstacle is less than the assigned goal distance.
-  // If so, it overwrites the assigned goal distance with its collision avoidance model.
   goalDist = cp1_distance;
+
+  // TODO Daniel: This would not do anything. The LiDAR never gives a reading > 10.0
   if (free_path_length >= 10.0){
-    free_path_length = 10000000.0; //... workaround for when goal dist > 10
+    free_path_length = 10000000.0; // ... workaround for when goal dist > 10
   }
+
+  // OBSTACLE CASE
+  // We detected a free path length closer than out actual end goal.
   if (free_path_length < goalDist - distanceTraveled){
-    distanceLeft = free_path_length - 0.5;
+    distanceLeft = free_path_length - 0.5;  // adjust for front of car + margin
   }
+
+  // GOAL CASE
+  // We will reach the end goal before colliding with any obstacle.
   else {
     distanceLeft = goalDist - distanceTraveled; // subtracts global distance travelled from our goal distance
   }
