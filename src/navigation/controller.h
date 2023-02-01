@@ -16,6 +16,8 @@ class Controller {
 
   float Run(float vCurrent, float distanceTraveled, float cp1_distance, float free_path_length);
 
+  float FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature);
+
   private:
 
 };

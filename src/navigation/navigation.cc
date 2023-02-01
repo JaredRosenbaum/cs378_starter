@@ -66,20 +66,15 @@ float controlVelocity;
 
 navigation::Controller TOC;
 
-// PointCloud visualization variables
+// PointCloud visualization variable
 Vector2f p(0.0, 0.0);
 
-// Latency calculations
-vector<float> prevCommands{};
-
-// Free path length variables
+// Free path length variable
 float min_dist;
-float r1;
-float r2;
-float r_dist;
-float theta;
-float f;
-Vector2f c(0.0, 0.0);
+
+// Latency calculations
+vector<float> prevCommands{}; 
+
 
 } // namespace
 
@@ -162,55 +157,8 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // Calculate free path length between the car and object.
-  min_dist = 10.0;
-  // Moving in a straight line
-  if (abs(FLAGS_cp3_curvature) > 1.0) {
-    for (int i = 0; i < (int)point_cloud_.size(); i++) {
-      p = point_cloud_[i];
-      // Make all coordinates positive
-      if (p.y() < 0) {
-        p.y() = p.y()*(-1);
-      }
-      // Only check point if in front of the car
-      if (p.y() < 0.2405) {
-        if (p.x() < min_dist){
-          min_dist = p.x();
-        }
-      }
-    } // At this point, min_dist is the closest point in front of the car.
-  }
-  // Moving along a left-turning arc
-  else if (FLAGS_cp3_curvature > 0.0) {
-    r1 = FLAGS_cp3_curvature - 0.2405;
-    r2 = sqrt(pow(FLAGS_cp3_curvature + 0.2405, 2) + pow(0.5, 2));
-
-    for (int i = 0; i < (int)point_cloud_.size(); i++) {
-      p = point_cloud_[i];
-      c.x() = 0;
-      c.y() = FLAGS_cp3_curvature;
-
-      // Check for obstacle
-      r_dist = sqrt(pow(p.x() - c.x(), 2) + pow(p.y() - c.y(), 2));
-      theta = atan2(p.x(), FLAGS_cp3_curvature - 0.2405);
-      if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
-        f = FLAGS_cp3_curvature * (theta - atan2(0.5, FLAGS_cp3_curvature - p.y()));
-        
-        // Update minimum free path length
-        if (f < min_dist) {
-          min_dist = f;
-        }
-      }
-    }
-  }
-  // Moving along a right-turning arc 
-  else if (FLAGS_cp3_curvature < 0.0) {
-
-  }
-  // Special case, radius of curvature  = 0
-  else {
-
-  }
+  // Calculate free path length
+  min_dist = TOC.FreePathLength(point_cloud_, FLAGS_cp3_curvature);
 
   // Calculate distance traveled assuming a 0.2s actuation latency
   float distanceLatency = 0.0;
@@ -219,7 +167,7 @@ void Navigation::Run() {
   }
   distanceLatency *= timestep;
   
-  // Run Time Optimal Controller to calculate velocity value
+  // Run the Time Optimal Controller to calculate velocity value
   controlVelocity = TOC.Run(vCurrent, distanceTraveled + distanceLatency, FLAGS_cp1_distance, min_dist - distanceLatency);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();

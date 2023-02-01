@@ -6,12 +6,15 @@
 */
 //========================================================================
 
+#include "eigen3/Eigen/Dense"
+#include "eigen3/Eigen/Geometry"
 #include "glog/logging.h"
 #include "shared/math/math_util.h"
 #include "shared/util/timer.h"
 #include "controller.h"
 #include <iostream>
 
+using Eigen::Vector2f;
 using std::string;
 using std::vector;
 
@@ -22,6 +25,11 @@ namespace {
   const float vMax = 1.0;
   const float aMax = 3.0;
   float goalDist;
+
+  // Free path length variables
+  float r, r1, r2, r_dist, theta;
+  Vector2f c(0.0, 0.0);
+  float f;
 }  // namespace
 
 namespace navigation {
@@ -73,6 +81,64 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   }
 
   return controlVelocity;
+}
+
+// Calculate free path length between the car and object.
+float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature) {
+  Vector2f p(0.0, 0.0);
+  float f_min = 10.0;
+  r = cp3_curvature;
+
+  // Moving in a straight line
+  if (abs(r) < 0.01) {
+    for (int i = 0; i < (int)point_cloud_.size(); i++) {
+      p = point_cloud_[i];
+      // Make all coordinates positive
+      if (p.y() < 0) {
+        p.y() = p.y()*(-1);
+      }
+      // Only check point if in front of the car
+      if (p.y() < 0.2405) {
+        if (p.x() < f_min){
+          f_min = p.x();
+        }
+      }
+    } // At this point, min_dist is the closest point in front of the car.
+  }
+
+  // Moving along an arc
+  else {
+    r = abs(r);   // absolute value to handle both left/right turns
+
+    // Calculate radius for swept volume
+    r1 = r - 0.2405;
+    r2 = sqrt(pow(r + 0.2405, 2) + pow(0.5, 2));
+
+    // Loop through pointcloud
+    for (int i = 0; i < (int)point_cloud_.size(); i++) {
+      p = point_cloud_[i];
+      c.x() = 0;
+      c.y() = r;
+
+      // Project car towards point
+      if (cp3_curvature > 0.0)
+        r_dist = sqrt(pow(p.x() - c.x(), 2) + pow(p.y() - c.y(), 2));
+      else
+        r_dist = sqrt(pow(p.x() - c.x(), 2) + pow(-1 * p.y() - c.y(), 2));
+      theta = atan2(p.x(), r - 0.2405);
+
+      // Check if its an obstacle
+      if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
+        f = r * (theta - atan2(0.5, r - p.y()));
+        // Update minimum free path length
+        if (f < f_min) {
+          f_min = f;
+        }
+      }
+    }
+  }
+
+  return f_min;
 }
 
 }  // namespace navigation
