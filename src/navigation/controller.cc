@@ -41,6 +41,9 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   goalDist = cp1_distance;
 
   // TODO Daniel: This would not do anything. The LiDAR never gives a reading > 10.0
+  // REPONSE Jared: The purpose of this is to not overwrite the goal distance with 10 when the lidar = 10.0.
+  // cont. The >= is not necessary, it could also be == 10.0, but it serves the same purpose and can catch weird errors this way.
+  // If you remove this you'll see the error that occurs. 
   if (free_path_length >= 10.0){
     free_path_length = 10000000.0; // ... workaround for when goal dist > 10
   }
@@ -117,19 +120,18 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
-      c.x() = 0;
-      c.y() = r;
+
 
       // Project car towards point
       if (cp3_curvature > 0.0)
-        r_dist = sqrt(pow(p.x() - c.x(), 2) + pow(p.y() - c.y(), 2));
+        r_dist = sqrt(pow(p.x(), 2) + pow(p.y() - r, 2));
       else
-        r_dist = sqrt(pow(p.x() - c.x(), 2) + pow(-1 * p.y() - c.y(), 2));
-      theta = atan2(p.x(), r - 0.2405);
+        r_dist = sqrt(pow(p.x(), 2) + pow(-1 * p.y() - r, 2));
+      theta = atan2(p.x(), r - p.y());
 
       // Check if its an obstacle
       if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
-        f = r * (theta - atan2(0.5, r - p.y()));
+        f = r * (theta - atan2(0.5, r - 0.2405));
         // Update minimum free path length
         if (f < f_min) {
           f_min = f;
