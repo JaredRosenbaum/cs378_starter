@@ -120,7 +120,7 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
-
+      //Ignore points which are on the other side of the center of curvature
       if(abs(p.y()) < 1/r){
       // Project car towards point
         if (cp3_curvature > 0.0){
@@ -147,7 +147,7 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     }
   }
 
-  return f_min+0.4;
+  return f_min+0.4; //This f_min needs to account for the length of the car, add 0.4
 }
 
 }  // namespace navigation
