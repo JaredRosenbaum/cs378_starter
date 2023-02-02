@@ -121,30 +121,33 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
 
-
+      if(abs(p.y()) < 1/r){
       // Project car towards point
-      if (cp3_curvature > 0.0){
-        r_dist = sqrt(pow(p.x(), 2) + pow(1/r - p.y(), 2));
-        theta = atan2(p.x(), abs(1/r - p.y()));
-      }
-      else{
-        r_dist = sqrt(pow(p.x(), 2) + pow(-1/r - p.y(), 2));
-        theta = atan2(p.x(), abs(-1/r - p.y()));
-      }
+        if (cp3_curvature > 0.0){
+          r_dist = sqrt(pow(p.x(), 2) + pow(1/r - p.y(), 2));
+          theta = atan2(p.x(), abs(1/r - p.y()));
+        }
+        else{
+          r_dist = sqrt(pow(p.x(), 2) + pow(-1/r - p.y(), 2));
+          theta = atan2(p.x(), abs(-1/r - p.y()));
+        }
       
 
       // Check if its an obstacle
-      if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
-        f = 1/r * (theta - atan2(0.5, 1/r - 0.2405));
-        // Update minimum free path length
-        if (f < f_min) {
-          f_min = f;
-        }
+        if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
+          f = 1/r * (theta - atan2(0.5, 1/r - 0.2405));
+          // Update minimum free path length
+          if (f < f_min) {
+            f_min = f;
+            std::cout << p.x() << "p.x" << p.y() << "p.y" << std::endl;
+            std::cout << f_min << std::endl;
+          }
+      }
       }
     }
   }
 
-  return f_min;
+  return f_min+0.4;
 }
 
 }  // namespace navigation

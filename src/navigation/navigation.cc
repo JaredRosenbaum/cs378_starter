@@ -177,10 +177,14 @@ void Navigation::Run() {
   drive_msg_.curvature = FLAGS_cp3_curvature;
 
   // Keep track of the previous velocity commands for latency compensation
-  if(prevCommands.size() == 4) {
+  if(prevCommands.size() == 2) {
       prevCommands.pop_back();
   } 
   prevCommands.insert(prevCommands.begin(), controlVelocity);
+  //Visualize turning radius
+  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), 1/abs(FLAGS_cp3_curvature)- 0.2405, 0, 2*3.1415, 0x000000, local_viz_msg_);
+  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), sqrt(pow(1/abs(FLAGS_cp3_curvature) + 0.2405, 2) + pow(0.5, 2)), 0, 2*3.1415, 0x000000, local_viz_msg_);
+
 
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
