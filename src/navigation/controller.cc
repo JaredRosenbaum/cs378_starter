@@ -139,8 +139,6 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
           // Update minimum free path length
           if (f < f_min) {
             f_min = f;
-            std::cout << p.x() << "p.x" << p.y() << "p.y" << std::endl;
-            std::cout << f_min << std::endl;
           }
       }
       }
