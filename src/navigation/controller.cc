@@ -147,7 +147,7 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     }
   }
 
-  return f_min+0.4; //This f_min needs to account for the length of the car, add 0.4
+  return f_min+0.5; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
 }
 
 }  // namespace navigation
