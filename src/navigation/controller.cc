@@ -114,24 +114,28 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     r = abs(r);   // absolute value to handle both left/right turns
 
     // Calculate radius for swept volume
-    r1 = r - 0.2405;
-    r2 = sqrt(pow(r + 0.2405, 2) + pow(0.5, 2));
-
+    r1 = 1/r - 0.2405;
+    r2 = sqrt(pow(1/r + 0.2405, 2) + pow(0.5, 2));
+    
     // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
 
 
       // Project car towards point
-      if (cp3_curvature > 0.0)
-        r_dist = sqrt(pow(p.x(), 2) + pow(p.y() - r, 2));
-      else
-        r_dist = sqrt(pow(p.x(), 2) + pow(-1 * p.y() - r, 2));
-      theta = atan2(p.x(), r - p.y());
+      if (cp3_curvature > 0.0){
+        r_dist = sqrt(pow(p.x(), 2) + pow(1/r - p.y(), 2));
+        theta = atan2(p.x(), abs(1/r - p.y()));
+      }
+      else{
+        r_dist = sqrt(pow(p.x(), 2) + pow(-1/r - p.y(), 2));
+        theta = atan2(p.x(), abs(-1/r - p.y()));
+      }
+      
 
       // Check if its an obstacle
       if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
-        f = r * (theta - atan2(0.5, r - 0.2405));
+        f = 1/r * (theta - atan2(0.5, 1/r - 0.2405));
         // Update minimum free path length
         if (f < f_min) {
           f_min = f;
