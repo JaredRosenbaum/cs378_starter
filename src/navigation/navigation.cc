@@ -162,7 +162,7 @@ void Navigation::Run() {
 
   // Calculate distance traveled assuming a 0.2s actuation latency
   float distanceLatency = 0.0;
-  
+
   for (unsigned i = 0; i < prevCommands.size(); i++) {
     distanceLatency += prevCommands[i];
   }
@@ -185,10 +185,11 @@ void Navigation::Run() {
 
   const float PI = 3.1415;
   const uint32_t COLOR = 0x000000;
+  const float WIDTH = 0.2405; // width of car + margin
 
   //Visualize turning radius
-  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), 1/abs(FLAGS_cp3_curvature) - 0.2405, 0, 2*PI, COLOR, local_viz_msg_);
-  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), sqrt(pow(1/abs(FLAGS_cp3_curvature) + 0.2405, 2) + pow(0.5, 2)), 0, 2*PI, COLOR, local_viz_msg_);
+  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), 1/abs(FLAGS_cp3_curvature) - WIDTH, 0, 2*PI, COLOR, local_viz_msg_);
+  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), sqrt(pow(1/abs(FLAGS_cp3_curvature) + WIDTH, 2) + pow(0.5, 2)), 0, 2*PI, COLOR, local_viz_msg_);
 
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
