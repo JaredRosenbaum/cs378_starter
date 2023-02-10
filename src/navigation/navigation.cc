@@ -173,8 +173,8 @@ void Navigation::Run() {
   // Go from -.99 to .99 possible curvatures, with an increment of 0.09 for each
   for(float curv = curvStart; curv <= (-curvStart); curv += curvInc){
     min_dist = TOC.FreePathLength(point_cloud_, curv);  
-    clearance = TOC.Clearance(point_cloud_, curv, min_dist, clearanceUpperBound)
-    distanceLeft = // TOC.DistanceLeft(point_cloud_, curv, ...)
+    clearance = TOC.Clearance(point_cloud_, curv, min_dist, clearanceUpperBound);
+    distanceLeft = TOC.DistanceLeft(point_cloud_, curv, min_dist);
 
     float score = min_dist + (w1 * clearance) + (w2 * distanceLeft);
     if (score > bestScore) {
