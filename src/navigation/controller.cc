@@ -39,6 +39,7 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   float distanceLeft;
   float controlVelocity;
   goalDist = cp1_distance;
+  float car_margin = 0.5
 
   // TODO Daniel: This would not do anything. The LiDAR never gives a reading > 10.0
   // REPONSE Jared: The purpose of this is to not overwrite the goal distance with 10 when the lidar = 10.0.
@@ -51,7 +52,7 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   // OBSTACLE CASE
   // We detected a free path length closer than out actual end goal.
   if (free_path_length < goalDist - distanceTraveled){
-    distanceLeft = free_path_length - 0.5;  // adjust for front of car + margin
+    distanceLeft = free_path_length - car_margin;  // adjust for front of car + margin
   }
 
   // GOAL CASE
@@ -146,6 +147,24 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
   }
 
   return f_min+0.5; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
+}
+
+float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature, float free_path_length, float clearance_upper_bound) {
+  // rad
+  if (cp3_curvature = 0){
+    r = 100000.0;
+  }
+  else{
+    r = 1/cp3_curvature;
+  }
+  if ///////
+}
+
+float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature, float free_path_length) {
+  // Nihar + Eric squad
+  // Find end point of curvature
+  
+  
 }
 
 }  // namespace navigation

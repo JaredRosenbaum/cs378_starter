@@ -157,7 +157,32 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // Calculate free path length
+  // Calculate scores
+
+  float bestScore = -1; //Find best score
+  float bestCurvature = -1; //Find the curvature associated with the best score
+
+  float w1 = 1; // Weight for Clearance 
+  float w2 = 1; // Weight for Distance to Goal
+
+  float curvStart = -.99;
+  float curvInc = 0.09;
+  
+  float clearanceUpperBound = 1.0; // in meters, upperbound of when we still care about the clearance left
+
+  // Go from -.99 to .99 possible curvatures, with an increment of 0.09 for each
+  for(float curv = curvStart; curv <= (-curvStart); curv += curvInc){
+    min_dist = TOC.FreePathLength(point_cloud_, curv);  
+    clearance = TOC.Clearance(point_cloud_, curv, min_dist, clearanceUpperBound)
+    distanceLeft = // TOC.DistanceLeft(point_cloud_, curv, ...)
+
+    float score = min_dist + (w1 * clearance) + (w2 * distanceLeft);
+    if (score > bestScore) {
+      bestScore = score;
+      bestCurvature = curv;
+    }    
+  }
+
   min_dist = TOC.FreePathLength(point_cloud_, FLAGS_cp3_curvature);
 
   // Calculate distance traveled assuming a 0.2s actuation latency

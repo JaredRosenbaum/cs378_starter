@@ -18,6 +18,10 @@ class Controller {
 
   float FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature);
 
+  float Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature);
+
+  float DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature);
+
   private:
 
 };
