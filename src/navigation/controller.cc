@@ -27,8 +27,9 @@ namespace {
   float goalDist;
 
   // Free path length variables
-  float r, r1, r2, r_dist, theta;
-  Vector2f c(0.0, 0.0);
+  float r, r1, r2, r_dist, theta, theta_min;
+  // Vector2f c(0.0, 0.0);
+  float c;
   float f;
 }  // namespace
 
@@ -39,13 +40,13 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   float distanceLeft;
   float controlVelocity;
   goalDist = cp1_distance;
-  float car_margin = 0.5
+  float car_margin = 0.5;
 
   // TODO Daniel: This would not do anything. The LiDAR never gives a reading > 10.0
   // REPONSE Jared: The purpose of this is to not overwrite the goal distance with 10 when the lidar = 10.0.
   // cont. The >= is not necessary, it could also be == 10.0, but it serves the same purpose and can catch weird errors this way.
   // If you remove this you'll see the error that occurs. 
-  if (free_path_length >= 10.0){
+  if (free_path_length >= 9.0){
     free_path_length = 10000000.0; // ... workaround for when goal dist > 10
   }
 
@@ -90,7 +91,7 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
 // Calculate free path length between the car and object.
 float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature) {
   Vector2f p(0.0, 0.0);
-  float f_min = 10.0;
+  float f_min = 9.0;
   r = cp3_curvature;
 
   // Moving in a straight line
@@ -139,32 +140,71 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
           f = 1/r * (theta - atan2(0.5, 1/r - 0.2405));
           // Update minimum free path length
           if (f < f_min) {
-            f_min = f;
+            f_min = f+0.5;
+            theta_min = theta;
           }
       }
       }
     }
   }
 
-  return f_min+0.5; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
+  return f_min; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
 }
 
-float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature, float free_path_length, float clearance_upper_bound) {
+float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length, float clearance_upper_bound) {
   // rad
-  if (cp3_curvature = 0){
-    r = 100000.0;
+  Vector2f p(0.0, 0.0);
+  float c_min = clearance_upper_bound - 0.2405;
+  
+  if (abs(curvature) < 0.01){
+    for (int i = 0; i < (int)point_cloud_.size(); i++){
+      p = point_cloud_[i];
+      if (p.x() > 0 && p.x() < free_path_length+0.5 && abs(p.y()) < clearance_upper_bound && abs(p.y()) > 0.2405){
+        c = abs(p.y())-0.2405;
+        if (c < c_min){
+          c_min = c;
+        }
+      }
+    }
   }
+
   else{
-    r = 1/cp3_curvature;
+    r = 1/curvature;
+    Vector2f cc(0.0, r); //Center of Curvature as a point 
+    float theta_max = theta_min; //:)
+    for (int i = 0; i < (int)point_cloud_.size(); i++){
+      p = point_cloud_[i];
+      float cminp = sqrt(pow(p.x()-cc.x(),2)+pow(p.y()-cc.y(),2));
+      if (curvature > 0.0){
+          theta = atan2(p.x(), abs(1/abs(curvature) - p.y()));
+        }
+        else{
+          theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
+        }
+      if ((cminp-abs(r))<clearance_upper_bound && theta > 0 && theta < theta_max){
+        //Calculate clearance
+        if (cminp > r){
+          c = cminp-r2;
+        }
+        else if(cminp < r){
+          c = r1-cminp;
+        }
+        if (c < c_min){
+          c_min = c;
+        }
+      }
+      
+
+    }
   }
-  if ///////
+  return c_min;
 }
 
 float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature, float free_path_length) {
   // Nihar + Eric squad
   // Find end point of curvature
-  
-  
+  float placeholder=0.0;
+  return placeholder;
 }
 
 }  // namespace navigation
