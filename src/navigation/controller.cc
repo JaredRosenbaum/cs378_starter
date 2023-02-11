@@ -28,9 +28,10 @@ namespace {
 
   // Free path length variables
   float r, r1, r2, r_dist, theta, theta_min;
-  // Vector2f c(0.0, 0.0);
-  float c;
-  float f;
+
+  // Clearance calculation variables
+  float max_clearance = 0.5;
+  float c, f;
 }  // namespace
 
 namespace navigation {
@@ -151,15 +152,15 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
   return f_min; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
 }
 
-float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length, float clearance_upper_bound) {
+float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length) {
   // rad
   Vector2f p(0.0, 0.0);
-  float c_min = clearance_upper_bound - 0.2405;
+  float c_min = max_clearance - 0.2405;
   
   if (abs(curvature) < 0.01){
     for (int i = 0; i < (int)point_cloud_.size(); i++){
       p = point_cloud_[i];
-      if (p.x() > 0 && p.x() < free_path_length+0.5 && abs(p.y()) < clearance_upper_bound && abs(p.y()) > 0.2405){
+      if (p.x() > 0 && p.x() < free_path_length+0.5 && abs(p.y()) < max_clearance && abs(p.y()) > 0.2405){
         c = abs(p.y())-0.2405;
         if (c < c_min){
           c_min = c;
@@ -181,7 +182,7 @@ float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cur
         else{
           theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
         }
-      if ((cminp-abs(r))<clearance_upper_bound && theta > 0 && theta < theta_max){
+      if ((cminp-abs(r)) < max_clearance && theta > 0 && theta < theta_max){
         //Calculate clearance
         if (cminp > r){
           c = cminp-r2;

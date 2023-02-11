@@ -70,13 +70,14 @@ navigation::Controller TOC;
 Vector2f p(0.0, 0.0);
 
 // Obstacle avoidance variables
-float min_dist;
-float clearance;
-// float distance_left;
+float curvature_step = 0.1;
+float best_score, selected_free_path_length, selected_curvature;
+float min_dist, clearance, distance_to_goal;
+float w1 = 1; // Weight for Clearance 
+float w2 = 1; // Weight for Distance to Goal
 
 // Latency calculations
-vector<float> prevCommands{}; 
-
+vector<float> prevCommands{};
 
 } // namespace
 
@@ -160,35 +161,32 @@ void Navigation::Run() {
   // If odometry has not been initialized, we can't do anything.
   if (!odom_initialized_) return;
 
-  // Calculate scores
+  // Evaluate path options for obstacle avoidance
+  float score;
+  best_score = -1.0;
+  selected_curvature = 0.0;
 
-  // float bestScore = -1; //Find best score
-  // float bestCurvature = -1; //Find the curvature associated with the best score
+  for (float curv = -1.0; curv <= 1.0; curv += curvature_step) {
+    min_dist = TOC.FreePathLength(point_cloud_, curv);
+    clearance = TOC.Clearance(point_cloud_, curv, min_dist);
+    distance_to_goal = TOC.DistanceLeft(point_cloud_, curv, min_dist);
 
-  // float w1 = 1; // Weight for Clearance 
-  // float w2 = 1; // Weight for Distance to Goal
+    // Calculate and update score
+    // TODO Use complete formula
+    score = min_dist + w1 * clearance + w2 * min_dist;
+    score = min_dist + w1 * clearance;
 
-  // float curvStart = -1.0;
-  // float curvInc = 0.1;
-  
-  float clearanceUpperBound = 0.5; // in meters, upperbound of when we still care about the clearance left
-  float curv = 0.0;
-  // Go from -.99 to .99 possible curvatures, with an increment of 0.09 for each
-  // for(float curv = curvStart; curv <= (-curvStart); curv += curvInc){
-  min_dist = TOC.FreePathLength(point_cloud_, curv);  
-  clearance = TOC.Clearance(point_cloud_, curv, min_dist, clearanceUpperBound);
-  std::cout << min_dist << "\t\t" << clearance << endl;
-  //   std::cout << clearance << "for" << curv << endl;
-  //   distance_left = TOC.DistanceLeft(point_cloud_, curv, min_dist);
+    cout << min_dist << "\t\t" << clearance << "\t\t\t" << score << endl;
 
-  //   // float score = min_dist + (w1 * clearance) + (w2 * distance_left);
-  //   // if (score > bestScore) {
-  //   //   bestScore = score;
-  //   //   bestCurvature = curv;
-  //   // }    
-  // }
+    if (score > best_score) {
+      best_score = score;
+      selected_free_path_length = min_dist;
+      selected_curvature = curv;
+    }
+  }
 
-  min_dist = TOC.FreePathLength(point_cloud_, FLAGS_cp3_curvature);
+  // TODO Delete
+  // min_dist = TOC.FreePathLength(point_cloud_, FLAGS_cp3_curvature);
 
   // Calculate distance traveled assuming a 0.2s actuation latency
   float distanceLatency = 0.0;
@@ -199,13 +197,17 @@ void Navigation::Run() {
   distanceLatency *= timestep;
   
   // Run the Time Optimal Controller to calculate velocity value
-  controlVelocity = TOC.Run(vCurrent, distanceTraveled + distanceLatency, FLAGS_cp1_distance, min_dist - distanceLatency);
+  distanceTraveled = 0;   // car will continue moving forward indefinitely
+  controlVelocity = TOC.Run(vCurrent, distanceTraveled + distanceLatency, FLAGS_cp1_distance, selected_free_path_length - distanceLatency);
   vCurrent = robot_vel_.norm();
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
 
   // Set the control values to issue drive commands:
-  drive_msg_.velocity = controlVelocity;
-  drive_msg_.curvature = FLAGS_cp3_curvature;
+  // TODO Uncomment correct values
+  // drive_msg_.velocity = controlVelocity;
+  // drive_msg_.curvature = selected_curvature;
+  drive_msg_.velocity = 0.2;
+  drive_msg_.curvature = 0.0;
 
   // Keep track of the previous velocity commands for latency compensation
   if(prevCommands.size() == 2) {
