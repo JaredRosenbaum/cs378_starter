@@ -27,7 +27,7 @@ namespace {
   float goalDist;
 
   // Free path length variables
-  float r, r1, r2, r_dist, theta, theta_min;
+  float r, r1, r2, r_dist, theta, theta_new;
 
   // Clearance calculation variables
   float max_clearance = 0.5;
@@ -97,17 +97,18 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
 
   // Moving in a straight line
   if (abs(r) < 0.01) {
+    // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
+
       // Make all coordinates positive
       if (p.y() < 0) {
         p.y() = p.y()*(-1);
       }
-      // Only check point if in front of the car
-      if (p.y() < 0.2405) {
-        if (p.x() < f_min){
-          f_min = p.x();
-        }
+
+      // Update minimum free path length
+      if (p.y() < 0.2405 && p.x() < f_min) {
+        f_min = p.x();
       }
     } // At this point, min_dist is the closest point in front of the car.
   }
@@ -123,28 +124,31 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
     // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
-      //Ignore points which are on the other side of the center of curvature
+
+      // Ignore points which are on the other side of the center of curvature
       if(abs(p.y()) < 1/r){
-      // Project car towards point
-        if (cp3_curvature > 0.0){
+        // Project car towards point
+        // Left turn
+        if (cp3_curvature > 0.0) {
           r_dist = sqrt(pow(p.x(), 2) + pow(1/r - p.y(), 2));
           theta = atan2(p.x(), abs(1/r - p.y()));
         }
-        else{
+        // Right turn
+        else {
           r_dist = sqrt(pow(p.x(), 2) + pow(-1/r - p.y(), 2));
           theta = atan2(p.x(), abs(-1/r - p.y()));
         }
-      
 
-      // Check if its an obstacle
+        // Check if its an obstacle
         if (r_dist >= r1 && r_dist <= r2 && theta > 0) {
           f = 1/r * (theta - atan2(0.5, 1/r - 0.2405));
+          
           // Update minimum free path length
           if (f < f_min) {
             f_min = f+0.5;
-            theta_min = theta;
+            theta_new = theta;
           }
-      }
+        }
       }
     }
   }
@@ -152,16 +156,22 @@ float Controller::FreePathLength(std::vector<Eigen::Vector2f> point_cloud_, floa
   return f_min; //This f_min needs to account for the length of the car and already has the safety margin, add 0.5
 }
 
+// Calculate minimum clearance along free path length and curvature.
 float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length) {
-  // rad
   Vector2f p(0.0, 0.0);
   float c_min = max_clearance - 0.2405;
   
-  if (abs(curvature) < 0.01){
-    for (int i = 0; i < (int)point_cloud_.size(); i++){
+  // Moving in a straight line
+  if (abs(curvature) < 0.01) {
+    // Loop through pointcloud
+    for (int i = 0; i < (int)point_cloud_.size(); i++) {
       p = point_cloud_[i];
-      if (p.x() > 0 && p.x() < free_path_length+0.5 && abs(p.y()) < max_clearance && abs(p.y()) > 0.2405){
+
+      // If obstacle afftects clearance
+      if (p.x() > 0 && p.x() < free_path_length+0.5 && abs(p.y()) < max_clearance && abs(p.y()) > 0.2405) {
         c = abs(p.y())-0.2405;
+
+        // Update minimum clearance
         if (c < c_min){
           c_min = c;
         }
@@ -169,35 +179,47 @@ float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cur
     }
   }
 
-  else{
-    r = 1/curvature;
-    Vector2f cc(0.0, r); //Center of Curvature as a point 
-    float theta_max = theta_min; //:)
+  // Moving along an arc
+  else {
+    r = abs(1 / curvature);  // radius of curvature
+    Vector2f cc(0.0, r); // center of Curvature as a point 
+    float theta_max = theta_new;  // maximum free path length theta to travel
+    float cminp;
+
+    // Loop through pointcloud
     for (int i = 0; i < (int)point_cloud_.size(); i++){
       p = point_cloud_[i];
-      float cminp = sqrt(pow(p.x()-cc.x(),2)+pow(p.y()-cc.y(),2));
-      if (curvature > 0.0){
-          theta = atan2(p.x(), abs(1/abs(curvature) - p.y()));
+      cminp = sqrt(pow(cc.x() - p.x(), 2) + pow(cc.y() - p.y(), 2));
+
+      // Project car towards point
+      // Left turn
+      if (curvature > 0.0) {
+        theta = atan2(p.x(), abs(1/abs(curvature) - p.y()));
+      }
+      // Right turn
+      else {
+        theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
+      }
+
+      // Check if point affects clearance
+      if ((cminp - r) < max_clearance && theta > 0 && theta < theta_max) {
+        // Compute clearance
+        if (cminp > r) {
+          c = cminp - r2;
         }
-        else{
-          theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
+        else {
+          c = r1 - cminp;
         }
-      if ((cminp-abs(r)) < max_clearance && theta > 0 && theta < theta_max){
-        //Calculate clearance
-        if (cminp > r){
-          c = cminp-r2;
-        }
-        else if(cminp < r){
-          c = r1-cminp;
-        }
-        if (c < c_min){
+
+        // Update minimum clearance
+        if (c < c_min) {
           c_min = c;
         }
       }
-      
-
     }
   }
+
+  
   return c_min;
 }
 

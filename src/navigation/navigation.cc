@@ -167,6 +167,10 @@ void Navigation::Run() {
   selected_curvature = 0.0;
 
   for (float curv = -1.0; curv <= 1.0; curv += curvature_step) {
+    
+    curv = 0.3;
+
+
     min_dist = TOC.FreePathLength(point_cloud_, curv);
     clearance = TOC.Clearance(point_cloud_, curv, min_dist);
     distance_to_goal = TOC.DistanceLeft(point_cloud_, curv, min_dist);
@@ -176,13 +180,15 @@ void Navigation::Run() {
     score = min_dist + w1 * clearance + w2 * min_dist;
     score = min_dist + w1 * clearance;
 
-    cout << min_dist << "\t\t" << clearance << "\t\t\t" << score << endl;
+    cout << min_dist << "\t\t" << clearance << "\t\t\t  " << score << endl;
 
     if (score > best_score) {
       best_score = score;
       selected_free_path_length = min_dist;
       selected_curvature = curv;
     }
+
+    break;
   }
 
   // TODO Delete
@@ -207,7 +213,7 @@ void Navigation::Run() {
   // drive_msg_.velocity = controlVelocity;
   // drive_msg_.curvature = selected_curvature;
   drive_msg_.velocity = 0.2;
-  drive_msg_.curvature = 0.0;
+  drive_msg_.curvature = 0.3;
 
   // Keep track of the previous velocity commands for latency compensation
   if(prevCommands.size() == 2) {
