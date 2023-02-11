@@ -202,7 +202,7 @@ float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cur
       }
 
       // Check if point affects clearance
-      if ((cminp - r) < max_clearance && theta > 0 && theta < theta_max) {
+      if (abs(cminp - r) < max_clearance && theta > 0 && theta < theta_max) {
         // Compute clearance
         if (cminp > r) {
           c = cminp - r2;
