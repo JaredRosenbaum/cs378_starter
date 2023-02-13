@@ -73,8 +73,9 @@ Vector2f p(0.0, 0.0);
 float curvature_step = 0.1;
 float best_score, selected_free_path_length, selected_curvature;
 float min_dist, clearance, distance_to_goal;
-float w1 = 1; // Weight for Clearance 
-float w2 = 1; // Weight for Distance to Goal
+float w1 = 20; // Weight for Clearance 
+float w2 = 5; // Weight for Distance to Goal
+float w0 = 1; // Weight for FPL
 
 // Latency calculations
 vector<float> prevCommands{};
@@ -163,11 +164,11 @@ void Navigation::Run() {
 
   // Evaluate path options for obstacle avoidance
   float score;
-  float straight_score = 0;
+  // float straight_score = 0;
   best_score = -1.0;
   selected_curvature = 0.0;
   float curv;
-  for (curv = -1.0; curv <= 1.0; curv += curvature_step) {
+  for (curv = -1.0; curv <= 1.05; curv += curvature_step) {
     
     // curv = 0.3;
 
@@ -178,24 +179,24 @@ void Navigation::Run() {
 
     // Calculate and update score
     // TODO Use complete formula
-    score = min_dist + w1 * clearance + w2 * min_dist;
-    score = min_dist + w1 * clearance;
+    score = w0 * min_dist + w1 * clearance + w2 * 1/distance_to_goal;
+    // score = min_dist + w1 * clearance;
 
-    //edge case
-    if (abs(curv) < 0.01){
-      straight_score = score;
-    }
+    // //edge case
+    // if (abs(curv) < 0.01){
+    //   straight_score = score;
+    // }
 
-    cout << min_dist << "\t\t" << clearance << "\t\t\t  " << score << "\t" << curv << endl;
+    cout << min_dist << "\t" << clearance << "\t  " << distance_to_goal << "\t" << score << "\t" << curv << endl;
     if (score >= best_score) {
       best_score = score;
       selected_free_path_length = min_dist;
       selected_curvature = curv;
     }
 
-    if (straight_score == best_score){
-      selected_curvature = 0.0;
-    }
+    // if (straight_score == best_score){
+    //   selected_curvature = 0.0;
+    // }
     // break;
   }
 
