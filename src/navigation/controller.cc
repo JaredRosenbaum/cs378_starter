@@ -44,12 +44,9 @@ float Controller::Run(float vCurrent, float distanceTraveled, float cp1_distance
   goalDist = cp1_distance;
   float car_margin = 0.5;
 
-  // TODO Daniel: This would not do anything. The LiDAR never gives a reading > 10.0
-  // REPONSE Jared: The purpose of this is to not overwrite the goal distance with 10 when the lidar = 10.0.
-  // cont. The >= is not necessary, it could also be == 10.0, but it serves the same purpose and can catch weird errors this way.
-  // If you remove this you'll see the error that occurs. 
+  // Workaround for when goal distance >= 9
   if (free_path_length >= 9.0){
-    free_path_length = 10000000.0; // ... workaround for when goal dist > 10
+    free_path_length = 10000000.0;
   }
 
   // OBSTACLE CASE
