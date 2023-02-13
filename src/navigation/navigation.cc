@@ -174,7 +174,7 @@ void Navigation::Run() {
     distance_to_goal = TOC.DistanceLeft(point_cloud_, curv, min_dist);
 
     // Calculate and update score
-    score = w0 * min_dist + w1 * clearance + w2 * 1/distance_to_goal - curv*(0.00001);
+    score = w0 * min_dist + w1 * clearance + w2 * distance_to_goal - curv*(0.00001);
     // cout << min_dist << "\t" << clearance << "\t  " << distance_to_goal << "\t" << score << "\t" << curv << endl;
 
     // Update best score
