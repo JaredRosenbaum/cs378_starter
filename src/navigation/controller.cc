@@ -223,11 +223,41 @@ float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cur
   return c_min;
 }
 
-float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float cp3_curvature, float free_path_length) {
+float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length) {
   // Nihar + Eric squad
   // Find end point of curvature
-  float placeholder=0.0;
-  return placeholder;
+  float distance_left = 0.0;
+  Vector2f p(0.0, 0.0);
+  Vector2f goal(0.0, 0.0);
+
+  goal.x = 10 * cos(curvature); // end values of goal with a length of 10 (arbitrary)
+  goal.y = 10 * sin(curvature);
+
+  if (curvature > 0.0) {
+    theta = atan2(p.x(), abs(1/abs(curvature) - p.y()));
+  }
+  // Right turn
+  else {
+    theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
+  }
+
+  // straight
+  if (abs(curvature) < 0.01){
+    Vector2f difference = p - goal;
+    distance_left = sqrt(pow(difference.x, 2) + pow(difference.y, 2))
+  }
+
+  // turn
+  else {
+    Vector2f end;
+    end.x = free_path_length * (cos(curvature * free_path_length));
+    end.y = free_path_length * (sin(curvature * free_path_length));
+    Vector2f difference = end - goal;
+    distance_left = sqrt(pow(difference.x, 2) + pow(difference.y, 2));
+  }
+
+  return distance_left;
+
 }
 
 }  // namespace navigation
