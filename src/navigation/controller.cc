@@ -227,29 +227,18 @@ float Controller::Clearance(std::vector<Eigen::Vector2f> point_cloud_, float cur
 }
 
 float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float curvature, float free_path_length) {
-  // Nihar + Eric squad
   // Find end point of curvature
   float distance_left = 0.0;
   Vector2f base_link(0.0, 0.0);
   Vector2f goal(10.0, 0.0);
 
-  //Closest point of approach
+  // Closest point of approach
   float theta_cpoa = atan(goal.x()/(1/curvature));
   Vector2f cpoa((1/curvature)*sin(theta_cpoa), (1/curvature)-(1/curvature)*cos(theta_cpoa));
   float dist_cpoa = (1/curvature)*theta_cpoa;
   // std::cout << theta_cpoa*180/M_PI << "\t theta \t" << dist_cpoa << "\t" << "dist" << std::endl;
 
-  // for (int i = 0; i < (int)point_cloud_.size(); i++) {
-  //   p = point_cloud_[i];
-  //   if (curvature > 0.0) {
-  //     theta = atan2(p.x(), abs(1/abs(curvature) - p.y()));
-  //   }
-  //   // Right turn
-  //   else {
-  //     theta = atan2(p.x(), abs(-1/abs(curvature) - p.y()));
-  //   }
-
-    // straight
+  // straight
   if (abs(curvature) < 0.01){
     // Vector2f difference = base_link - goal;
     // distance_left = sqrt(pow(difference.x(), 2) + pow(difference.y(), 2));
@@ -266,16 +255,9 @@ float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float 
       Vector2f calcpoint((1/curvature)*sin(psi),(1/curvature)-(1/curvature)*cos(psi));
       distance_left = sqrt(pow(calcpoint.x()-goal.x(),2)+pow(calcpoint.y()-goal.y(),2));
     }
-    // Vector2f end;
-    // end.x() = free_path_length * (cos(curvature * free_path_length));
-    // end.y() = free_path_length * (sin(curvature * free_path_length));
-    // Vector2f difference = end - goal;
-    // distance_left = sqrt(pow(difference.x(), 2) + pow(difference.y(), 2));
   }
-  
 
   return distance_left;
-
 }
 
 }  // namespace navigation

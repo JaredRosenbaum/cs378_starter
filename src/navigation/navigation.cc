@@ -169,39 +169,21 @@ void Navigation::Run() {
   selected_curvature = 0.0;
   float curv;
   for (curv = -1.0; curv <= 1.05; curv += curvature_step) {
-    
-    // curv = 0.3;
-
-
     min_dist = TOC.FreePathLength(point_cloud_, curv);
     clearance = TOC.Clearance(point_cloud_, curv, min_dist);
     distance_to_goal = TOC.DistanceLeft(point_cloud_, curv, min_dist);
 
     // Calculate and update score
-    // TODO Use complete formula
     score = w0 * min_dist + w1 * clearance + w2 * 1/distance_to_goal;
-    // score = min_dist + w1 * clearance;
+    // cout << min_dist << "\t" << clearance << "\t  " << distance_to_goal << "\t" << score << "\t" << curv << endl;
 
-    // //edge case
-    // if (abs(curv) < 0.01){
-    //   straight_score = score;
-    // }
-
-    cout << min_dist << "\t" << clearance << "\t  " << distance_to_goal << "\t" << score << "\t" << curv << endl;
+    // Update best score
     if (score >= best_score) {
       best_score = score;
       selected_free_path_length = min_dist;
       selected_curvature = curv;
     }
-
-    // if (straight_score == best_score){
-    //   selected_curvature = 0.0;
-    // }
-    // break;
   }
-
-  // TODO Delete
-  // min_dist = TOC.FreePathLength(point_cloud_, FLAGS_cp3_curvature);
 
   // Calculate distance traveled assuming a 0.2s actuation latency
   float distanceLatency = 0.0;
@@ -218,11 +200,8 @@ void Navigation::Run() {
   distanceTraveled = (odom_loc_ - odom_start_loc_).norm();
 
   // Set the control values to issue drive commands:
-  // TODO Uncomment correct values
   drive_msg_.velocity = controlVelocity;
   drive_msg_.curvature = selected_curvature;
-  // drive_msg_.velocity = 0.2;
-  // drive_msg_.curvature = 0.3;
 
   // Keep track of the previous velocity commands for latency compensation
   if(prevCommands.size() == 2) {
