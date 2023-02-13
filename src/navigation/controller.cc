@@ -263,7 +263,7 @@ float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float 
     }
     else{
       float psi = free_path_length/abs(1/curvature);
-      Vector2f calcpoint((1/curvature)*sin(psi),(1/curvature)-(1/curvature)*cos(psi));
+      Vector2f calcpoint(abs(1/curvature)*sin(psi),abs(1/curvature)-abs(1/curvature)*cos(psi));
       distance_left = sqrt(pow(calcpoint.x()-goal.x(),2)+pow(calcpoint.y()-goal.y(),2));
     }
     // Vector2f end;
