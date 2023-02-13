@@ -239,7 +239,7 @@ float Controller::DistanceLeft(std::vector<Eigen::Vector2f> point_cloud_, float 
   if (abs(curvature) < 0.01){
     // Vector2f difference = base_link - goal;
     // distance_left = sqrt(pow(difference.x(), 2) + pow(difference.y(), 2));
-    distance_left = 3;
+    distance_left = 0;
   }
 
   // turn

@@ -74,7 +74,7 @@ float curvature_step = 0.1;
 float best_score, selected_free_path_length, selected_curvature;
 float min_dist, clearance, distance_to_goal;
 float w1 = 20; // Weight for Clearance 
-float w2 = -0.05; // Weight for Distance to Goal
+float w2 = -0.1; // Weight for Distance to Goal
 float w0 = 1.1; // Weight for FPL
 
 // Latency calculations
