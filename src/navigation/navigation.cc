@@ -74,8 +74,8 @@ float curvature_step = 0.1;
 float best_score, selected_free_path_length, selected_curvature;
 float min_dist, clearance, distance_to_goal;
 float w1 = 20; // Weight for Clearance 
-float w2 = 5; // Weight for Distance to Goal
-float w0 = 1; // Weight for FPL
+float w2 = -0.15; // Weight for Distance to Goal
+float w0 = 1.1; // Weight for FPL
 
 // Latency calculations
 vector<float> prevCommands{};
@@ -174,7 +174,7 @@ void Navigation::Run() {
     distance_to_goal = TOC.DistanceLeft(point_cloud_, curv, min_dist);
 
     // Calculate and update score
-    score = w0 * min_dist + w1 * clearance + w2 * 1/distance_to_goal;
+    score = w0 * min_dist + w1 * clearance + w2 * 1/distance_to_goal - curv*(0.00001);
     // cout << min_dist << "\t" << clearance << "\t  " << distance_to_goal << "\t" << score << "\t" << curv << endl;
 
     // Update best score
@@ -209,13 +209,13 @@ void Navigation::Run() {
   } 
   prevCommands.insert(prevCommands.begin(), controlVelocity);
 
-  const float PI = 3.1415;
-  const uint32_t COLOR = 0x000000;
-  const float WIDTH = 0.2405; // width of car + margin
+  // const float PI = 3.1415;
+  // const uint32_t COLOR = 0x00FF00;
+  // const float WIDTH = 0.2405; // width of car + margin
 
   //Visualize turning radius
-  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), 1/abs(FLAGS_cp3_curvature) - WIDTH, 0, 2*PI, COLOR, local_viz_msg_);
-  visualization::DrawArc(Vector2f (0, 1/FLAGS_cp3_curvature), sqrt(pow(1/abs(FLAGS_cp3_curvature) + WIDTH, 2) + pow(0.5, 2)), 0, 2*PI, COLOR, local_viz_msg_);
+  // visualization::DrawArc(Vector2f (0, 1/drive_msg_.curvature), 1/abs(drive_msg_.curvature), 0, 2*PI, COLOR, local_viz_msg_);
+  // visualization::DrawArc(Vector2f (0, 1/drive_msg_.curvature), sqrt(pow(1/abs(drive_msg_.curvature) + WIDTH, 2) + pow(0.5, 2)), 0, 2*PI, COLOR, local_viz_msg_);
 
   // Add timestamps to all messages.
   local_viz_msg_.header.stamp = ros::Time::now();
