@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<File Location="Config">
+  <Info/>
+  <DIR_SIGNIFIER Location="1">
+    <Info/>
+  </DIR_SIGNIFIER>
+  <File Location="VehicleConfig.sldd">
+    <Info>
+      <Category UUID="FileClassCategory">
+        <Label UUID="design"/>
+      </Category>
+    </Info>
+  </File>
+</File>

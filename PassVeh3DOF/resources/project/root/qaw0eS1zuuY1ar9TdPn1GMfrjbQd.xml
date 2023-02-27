@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<File Location="Plant">
+  <File Location="PassVeh3DOF.slx">
+    <Info>
+      <Category UUID="FileClassCategory">
+        <Label UUID="design"/>
+      </Category>
+    </Info>
+  </File>
+  <File Location="PassVeh3DOF.sldd">
+    <Info>
+      <Category UUID="FileClassCategory">
+        <Label UUID="design"/>
+      </Category>
+    </Info>
+  </File>
+  <File Location="PassVeh3DOFParam.sldd">
+    <Info>
+      <Category UUID="FileClassCategory">
+        <Label UUID="design"/>
+      </Category>
+    </Info>
+  </File>
+  <Info/>
+  <DIR_SIGNIFIER Location="1">
+    <Info/>
+  </DIR_SIGNIFIER>
+</File>
